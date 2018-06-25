@@ -1,0 +1,93 @@
+\documentclass{revtex4-1}
+
+\usepackage[backref,breaklinks,colorlinks,citecolor=blue]{hyperref}  
+\usepackage[all]{hypcap}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{natbib}
+\usepackage{xspace}
+\usepackage{nicefrac}
+\usepackage[dvipsnames]{xcolor}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{tablefootnote}
+\usepackage{ulem}
+\newcommand\myshade{85}
+\colorlet{mycitecolor}{Turquoise}
+\colorlet{mylinkcolor}{Turquoise}
+\hypersetup{
+ citecolor = mycitecolor!\myshade!black,
+ linkcolor = mylinkcolor!\myshade!black,
+ colorlinks = true,
+}
+
+
+\newcommand{\todo}[1]{\textcolor{red}{#1}}
+\newcommand{\tocheck}[1]{\textcolor{green}{Check: #1}}
+\newcommand{\citeme}{{\color{blue} CITE ME!}}
+\newcommand{\ilya}[1]{\textcolor{magenta}{#1}}
+
+
+\def\be{\begin{equation}}
+\def\ee{\end{equation}}
+\def\ba{\begin{eqnarray}}
+\def\ea{\end{eqnarray}}
+
+\begin{document}
+
+\title{A 100 million year old thermometer}
+
+\author{All author names to be added like this:\\}
+
+\author{Ilya Mandel}
+\email{imandel@star.sr.bham.ac.uk}
+\affiliation{Institute of Gravitational Wave Astronomy and School of Physics and Astronomy, University of Birmingham, Edgbaston, Birmingham B15 2TT, United Kingdom\\ and\\
+Monash Centre for Astrophysics, School of Physics and Astronomy, Monash University, Clayton, Victoria 3800, Australia}
+
+\begin{abstract}
+
+GDGTs in ocean-floor sediments provide a fossil record of ocean temperatures in the distant past.  Previous efforts to calibrate temperature prediction based on modern GDGT data have been suboptimal.  We apply modern machine-learning tools to the problem of calibrating a temperature predictor based on GDGT data.
+
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+
+
+We wish to make the following three key points:
+
+\begin{itemize}
+
+\item Even the modern GDGT data set is fundamentally imperfect at being a predictor for temperature;
+
+\item We discuss how best to predict temperature from GDGT observations using the modern data set for calibration, using all available data without pre-judgement;
+
+\item We analyse the prospects for applingy tools calibrated on the modern data set to cretaceous and eocene data.
+
+\end{itemize}
+
+
+\section{Data}
+
+Others should describe the data set.
+
+\section{Temperature prediction: calibration and validation}
+
+\section{Measuring temperature in the distant past}
+
+\section{Discussion}
+
+\begin{acknowledgements}
+We thank the research councils for their munificence.
+
+\end{acknowledgements}
+
+\bibliographystyle{hapj}
+\bibliography{paleo}
+
+\end{document}
+
+

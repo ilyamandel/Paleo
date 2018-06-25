@@ -134,9 +134,9 @@ TEX$_{86}$ reduces the six-dimensional observable space to a single number.  Whi
 	\caption{\label{fig:TEX86}  Top: The temperature of the modern data set as a function of the TEX$_{86}$ value, showing a clear correlation between the two, but also significant scatter.  Bottom: the error of the predictor based on the nearest TEX$_{86}$ calibration point.}
 \end{figure}
 
-Indeed, this is what we find when we consider predictors of the form $\hat{T}_\mathrm{OneTEX}  = a + b / \mathrm{TEX}_{86}$ \citeme and $\hat{T}_\mathrm{TEXH}  = c + d \log \mathrm{TEX}_{86}$ \citeme.  We fit the free parameters $a, b, c, d$ by minimising the sum of squares of the residuals over the calibration data sets.  We find that \tocheck{$\delta T_\mathrm{OneTEX} = 6.1$ degrees} (note that this is slightly better than using the fixed values of $a$ and $b$ from \citeme, which would yield \tocheck{$\delta T_\mathrm{OneTEX} = 6.2$ degrees}.  Meanwhile \ilya{[Will, this is for you: ]} $\delta T_\mathrm{TEXH} = XXX$ degrees.  \ilya{[Should we also include TEXL?]}  
+Indeed, this is what we find when we consider predictors of the form $\hat{T}_\mathrm{OneTEX}  = a + b / \mathrm{TEX}_{86}$ \citeme and $\hat{T}_\mathrm{TEXH}  = c + d \log \mathrm{TEX}_{86}$ \citeme.  We fit the free parameters $a, b, c, d$ by minimising the sum of squares of the residuals over the calibration data sets.  We find that \tocheck{$\delta T_\mathrm{OneTEX} = 6.1$ degrees} (note that this is slightly better than using the fixed values of $a$ and $b$ from \citeme, which would yield \tocheck{$\delta T_\mathrm{OneTEX} = 6.2$ degrees}.  Meanwhile \todo{[Will, this is for you: ]} $\delta T_\mathrm{TEXH} = XXX$ degrees.  \ilya{[Should we also include TEXL?]}  
 
-\ilya{[Will: this part about Bayespar is for you]} \citeme proposed a more sophisticated approach to obtaining the transfer function from TEX$_{86}$ to temperature ...  However, along with the simpler TEX$_{86}$--based models described above, this approach still suffers from the arbitrary reduction of a six-dimensional data set to a single number.  Therefore, it is not surprising that it performs more poorly than what could be achieved even with the simplest nearest-neighbour predictor using the full six-dimensional data set.
+\todo{[Will: this part about Bayespar is for you]} \citeme proposed a more sophisticated approach to obtaining the transfer function from TEX$_{86}$ to temperature ...  However, along with the simpler TEX$_{86}$--based models described above, this approach still suffers from the arbitrary reduction of a six-dimensional data set to a single number.  Therefore, it is not surprising that it performs more poorly than what could be achieved even with the simplest nearest-neighbour predictor using the full six-dimensional data set.
 
 \subsection{Machine learning}
 
@@ -150,7 +150,7 @@ We now consider improvements on the nearest-neighbour predictor motivated by mac
 
 
 One downside of this random forest predictor is the difficulty of accurately estimating the uncertainty on the prediction \citeme [Mentch, http://www.jmlr.org/papers/volume17/14-168/14-168.pdf] , although this is possible with, e.g., a bootstrapping approach \citeme [Coulston, https://pdfs.semanticscholar.org/b75a/432a6c236d193e5d9d4379f7a895efc81ae5.pdf].  Gaussian process regression provides a robust alternative 
-\ilya{[Will: describe the GP model here and give the results.]}
+\todo{[Will: describe the GP model here and give the results.]}
 
 \ilya{[To be decided: should we try to create an algorithmic prescription, by investigating what the random forest or GPs actually tell us about the most significant combinations of observable or the covariance matrix?]} 
 
@@ -168,7 +168,7 @@ In principle, the predictors described above can be applied directly to ancient 
 
 This is evident from \autoref{fig:nearestEC}, which shows the histograms of minimum normalised distances between eocene and cretaceous data points and the nearest point in the full modern data set.  While 93\% of validation data points in the modern data set have a nearby sample in the modern calibration set with a minimum normalised distance $D_\textrm{nearest}<0.5$, only 33\% of eocene samples are within a normalised distance $D_\textrm{nearest}<0.5$ of a modern data point; this fraction falls to only 3\% for cretaceous samples.  The predictive models should only be applied to this subset of the eocene and cretaceous data; in the absence of an underlying physical model, we cannot hope to make robust predictions for data that are very far from any calibration samples.
 
-\ilya{[Will: describe compositional analysis (assume $T \to \vec{\mathrm{GTGT}}$ is unique (up to noise) and invert; could probe different subsets of $\vec{\mathrm{GTGT}}$ -- generalised additive model.  Also describe GPs, which come with built-in error estimation and should revert to sample standard deviation when forced to extrapolate rather than interpolating.]}
+\todo{[Will: describe compositional analysis (assume $T \to \vec{\mathrm{GTGT}}$ is unique (up to noise) and invert; could probe different subsets of $\vec{\mathrm{GTGT}}$ -- generalised additive model.  Also describe GPs, which come with built-in error estimation and should revert to sample standard deviation when forced to extrapolate rather than interpolating.]}
 
 The key point, then, is that anyone trying to use GDGTs for temperature calibration should design flexible predictive models with honest, robust estimates of the prediction uncertainty.  Of course, this does not account for systematic errors due to possible biochemical changes in the processes producing GDGTs. \ilya{[Tom, Yvette, James -- discuss this more?]}
 

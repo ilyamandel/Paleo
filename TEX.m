@@ -1,6 +1,6 @@
 cd ~/Work/Paleo
 data=load('TEX.dat');
-%Satellite T (°C)	GDGT-0	GDGT-1	GDG-T2	GDGT-3	Cren(archeol)	Cren'(isomer)	
+%Satellite T (°C)	GDGT-0	GDGT-1	GDGT-2	GDGT-3	Cren(archeol)	Cren'(isomer)	
 T=data(:,1);
 GDGT1=log(data(:,4)./(data(:,3)+data(:,4)+data(:,5)))/log(10);
 TEX86=(data(:,4)+data(:,5)+data(:,7))./(data(:,3)+data(:,4)+data(:,5)+data(:,7));
@@ -146,8 +146,11 @@ clear distmin; clear distsq;
 Nval=length(validation);
 valcount=numel(validation)/length(validation);
 for(k=1:valcount),
+    arr=[1:length(modern)];
+    calibrationindex=~ismember(1:length(modern),validation(:,k));
+    calibration=arr(calibrationindex);
     for(i=1:Nval),
-        for(j=1:length(modern)),
+        for(j=1:length(calibration)),
             dist=(modern(j,1:6)-modern(validation(i,k),1:6))./stdmodern(1:6);
             distsq(j)=sqrt(sum(dist.^2));
             if(find(j==validation(:,k))), distsq(j)=inf; end;
@@ -159,15 +162,16 @@ end;
 figure(1), set(gca, 'FontSize', 16);
 hist(distmin(:),100); 
 set(gca, 'FontSize', 24); 
-xlabel('Normalized distance to nearest calibration point')%, title('Modern')
+%xlabel('Normalized distance to nearest calibration point')%, title('Modern')
+xlabel('$D_\mathrm{nearest}$','Interpreter', 'latex'), 
 
 temptrue=modern(validation,9);
 tempguess=modern(index,9);
 figure(2), set(gca, 'FontSize', 16);
 scatter(distmin(:),tempguess(:)-temptrue(:),'filled');
 set(gca, 'FontSize', 24); 
-xlabel('Normalized distance to nearest point'), 
-ylabel('Temperature - Temperature_{nearest}')%, title('Modern')
+xlabel('$D_\mathrm{nearest}$','Interpreter', 'latex'), 
+ylabel('$T - \hat{T}_\mathrm{nearest}$', 'Interpreter', 'latex')%, title('Modern')
 mean(abs(temptrue-tempguess))
 mean(temptrue-tempguess)
 std(temptrue-tempguess)
@@ -194,15 +198,31 @@ tempguess=modern(index,9);
 figure(4), set(gca, 'FontSize', 16);
 scatter(distmin(:),tempguess(:)-temptrue(:),'filled');
 set(gca, 'FontSize', 24); 
-xlabel('Distance to nearest TEX_{86} point'), 
-ylabel('Temp - Temp_{nearest TEX}')%, title('Modern')
+xlabel('Distance to nearest TEX$_{86}$ point',  'Interpreter', 'latex'), 
+ylabel('$T - \hat{T}_\mathrm{nearest TEX}$', 'Interpreter', 'latex')%, title('Modern')
 mean(abs(temptrue-tempguess))
 mean(temptrue-tempguess)
 std(temptrue-tempguess)
 std(modern(:,9))
 
+%OneTEX
+for(k=1:valcount),
+    arr=[1:length(modern)];
+    calibrationindex=~ismember(1:length(modern),validation(:,k));
+    calibration=arr(calibrationindex);
+    p=polyfit(1./TEX86modern(calibration),modern(calibration,9),1)
+    tempguess(:,k) = polyval(p,1./TEX86modern(validation(:,k)));
+end;
+figure(6), set(gca, 'FontSize', 16);
+scatter(EuFe(:,1),EuFe(:,2),'filled'); hold on;
+plot(EuFe(:,1),yfit,'LineWidth',3); hold off;
+set(gca, 'FontSize', 24);
+xlabel('[Fe/H]'); ylabel('[Eu/H]'); title('Linear fit to data in EMP-RGB file');
+legend('Data', 'Linear fit','Location','Best');
 
+TEXH=38.6+68.4*log(TEX86modern)/log(10);
 OneTEX=54.5-19.1./TEX86modern;
+TEXL=67.5*modern(:,1)+46.9;
 mean(temptrue'-TEXH(1:floor(length(modern)/2)))
 mean(abs(temptrue'-TEXH(1:floor(length(modern)/2))))
 std(temptrue'-TEXH(1:floor(length(modern)/2)))

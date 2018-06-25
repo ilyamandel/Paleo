@@ -172,7 +172,7 @@ figure(2), set(gca, 'FontSize', 16);
 scatter(distmin(:),tempguess(:)-temptrue(:),'filled');
 set(gca, 'FontSize', 24); 
 xlabel('$D_\mathrm{nearest}$','Interpreter', 'latex'), 
-ylabel('$T - \hat{T}_\mathrm{nearest}$', 'Interpreter', 'latex')%, title('Modern')
+ylabel('$\hat{T}_\mathrm{nearest} - T $', 'Interpreter', 'latex')%, title('Modern')
 mean(abs(temptrue-tempguess))
 mean(temptrue-tempguess)
 std(temptrue-tempguess)
@@ -190,9 +190,6 @@ for(k=1:valcount),
     calibrationindex=~ismember(1:length(modern),validation(:,k));
     calibration=arr(calibrationindex);
     for(i=1:Nval),
-            arr=[1:length(modern)];
-            calibrationindex=~ismember(1:length(modern),validation(:,k));
-            calibration=arr(calibrationindex);
         for(j=1:length(calibration)),
             dist=(TEX86modern(calibration(j))-TEX86modern(validation(i,k)));
             distsq(calibration(j))=sqrt(sum(dist.^2));
@@ -206,7 +203,7 @@ figure(4), set(gca, 'FontSize', 16);
 scatter(distmin(:),tempguess(:)-temptrue(:),'filled');
 set(gca, 'FontSize', 24); 
 xlabel('Distance to nearest TEX$_{86}$ point',  'Interpreter', 'latex'), 
-ylabel('$T - \hat{T}_\mathrm{nearest TEX}$', 'Interpreter', 'latex')%, title('Modern')
+ylabel('$\hat{T}_\mathrm{nearest\ TEX} - T$', 'Interpreter', 'latex')%, title('Modern')
 mean(abs(temptrue-tempguess))
 mean(temptrue-tempguess)
 std(temptrue-tempguess)
@@ -227,25 +224,51 @@ std(temptrue-OneTEX(:))
 
 TEXH=38.6+68.4*log(TEX86modern)/log(10);
 TEXL=67.5*modern(:,1)+46.9;
-mean(temptrue'-TEXH(1:floor(length(modern)/2)))
-mean(abs(temptrue'-TEXH(1:floor(length(modern)/2))))
 std(temptrue'-TEXH(1:floor(length(modern)/2)))
-mean(temptrue'-OneTEX(1:floor(length(modern)/2)))
-mean(abs(temptrue'-OneTEX(1:floor(length(modern)/2))))
 std(temptrue'-OneTEX(1:floor(length(modern)/2)))
 
-RegTree=fitensemble(modern(1:floor(length(modern)/2),1:6),modern(1:floor(length(modern)/2),9),'LSBoost',100,'Tree');
-RegTree=fitensemble(modern(floor(length(modern)/2)+1:length(modern),1:6),modern(floor(length(modern)/2)+1:length(modern),9),'LSBoost',100,'Tree');
-prediction=predict(RegTree,modern(1:floor(length(modern)/2),1:6)); 
-figure(7); scatter(temptrue,prediction,'filled'); set(gca, 'FontSize', 20);
-mean(temptrue'-OneTEX(1:floor(length(modern)/2)))
-mean(abs(temptrue'-OneTEX(1:floor(length(modern)/2))))
-std(temptrue'-OneTEX(1:floor(length(modern)/2)))
-mean(temptrue'-prediction)
-mean(abs(temptrue'-prediction))
-std(temptrue'-prediction)
-mean((temptrue'-TEXH(1:floor(length(modern)/2))).^2)
+%RegTree=fitensemble(modern(1:floor(length(modern)/2),1:6),modern(1:floor(length(modern)/2),9),'LSBoost',100,'Tree');
+%RegTree=fitensemble(modern(floor(length(modern)/2)+1:length(modern),1:6),modern(floor(length(modern)/2)+1:length(modern),9),'LSBoost',100,'Tree');
 
+clear tempguess;
+%random forest
+for(k=1:valcount),
+    arr=[1:length(modern)];
+    calibrationindex=~ismember(1:length(modern),validation(:,k));
+    calibration=arr(calibrationindex);
+    RegTree=fitensemble(modern(calibration,1:6),modern(calibration,9),'LSBoost',100,'Tree');
+    tempguess(:,k)=predict(RegTree,modern(validation(:,k),1:6));
+end;
+figure(7); set(gca, 'FontSize', 16); scatter(temptrue,tempguess(:)-temptrue,'filled'); 
+set(gca, 'FontSize', 24); 
+xlabel('$T$',  'Interpreter', 'latex'), 
+ylabel('$T-\hat{T}_\mathrm{random\ forest}$', 'Interpreter', 'latex')
+std(temptrue-tempguess(:))
+
+
+clear tempguess;
+%weighted nearest neigbours
+for(k=1:valcount),
+    arr=[1:length(modern)];
+    calibrationindex=~ismember(1:length(modern),validation(:,k));
+    calibration=arr(calibrationindex);
+    for(i=1:Nval),
+        for(j=1:length(calibration)),
+            dist=(TEX86modern(calibration(j))-TEX86modern(validation(i,k)));
+            distsq(calibration(j))=sqrt(sum(dist.^2));
+        end;
+        distsq(validation(:,k))=inf; 
+        weights=1./(0.0001+distsq).^2; %add 0.01 for regularisation
+        sumweights=sum(weights);
+        weights=weights/sumweights;
+        tempguess(i,k)=weights*modern(:,9);
+    end;
+end;
+figure(8); set(gca, 'FontSize', 16); scatter(temptrue,tempguess(:)-temptrue,'filled'); 
+set(gca, 'FontSize', 24); 
+xlabel('$T$',  'Interpreter', 'latex'), 
+ylabel('$T-\hat{T}_\mathrm{weighted\ neighbours}$', 'Interpreter', 'latex')
+std(temptrue-tempguess(:))
 
 
 for(i=1:length(eocene)),

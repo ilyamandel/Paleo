@@ -39,7 +39,13 @@
 
 \title{A 100 million year old thermometer}
 
-\author{All author names to be added like this:\\}
+\author{Yvette Eley}
+\author{William Thomson}
+\author{Tom Dunkley-Jones}
+\author{James Bendle}
+\author{Kirsty Marie Edgar}
+\author{\\All author names to be added like this:\\}
+
 
 \author{Ilya Mandel}
 \email{imandel@star.sr.bham.ac.uk}
@@ -56,8 +62,9 @@ GDGTs in ocean-floor sediments provide a fossil record of ocean temperatures in 
 
 \section{Introduction}
 
+\ilya{[All to write intro later]}
 
-We wish to make the following three key points:
+\ilya{[Placeholder]} We wish to make the following three key points:
 
 \begin{itemize}
 
@@ -65,14 +72,14 @@ We wish to make the following three key points:
 
 \item We discuss how best to predict temperature from GDGT observations using the modern data set for calibration, using all available data without pre-judgement;
 
-\item We analyse the prospects for applingy tools calibrated on the modern data set to cretaceous and eocene data.
+\item We analyse the prospects for applying tools calibrated on the modern data set to cretaceous and eocene data.
 
 \end{itemize}
 
 
 \section{Data}
 
-Others should describe the data set.
+\ilya{[Yvette, Tom et al. to describe data set.]}
 
 \section{Temperature prediction: calibration and validation}
 
@@ -107,7 +114,7 @@ The nearest-sample temperature predictor is $\hat{T}_\textrm{nearest} (x) = T(y)
 \begin{figure}
 	\centering
 	\includegraphics[width=0.5\textwidth]{Tnearest.png}
-	\caption{\label{fig:Tnearest}  The standard error of the nearest-neighbour temperature predictor as a function of the distance to the nearest calibration sample.}
+	\caption{\label{fig:Tnearest}  The error of the nearest-neighbour temperature predictor as a function of the distance to the nearest calibration sample.}
 \end{figure}
 
 On the other hand, the standard error for the nearest-neighbour temperature predictor is $\delta T_\mathrm{nearest} = 4.5$ degrees.  This is less than half of the standard deviation $\sigma T$ in the temperature values across the modern data set. Thus, the temperatures corresponding to nearby points in GDGT observable space also cluster in temperature space.  Consequently, there is hope that we can make some useful if imperfect temperature predictions.  The value of $\delta T_\mathrm{nearest}$ will also serve as a useful benchmark in this design: while we may hope to do better by, say, suitably averaging over multiple nearby calibration points rather than adopting the temperature at one nearest point as a predictor, any method that performs worse than the nearest-neighbour predictor is clearly suboptimal. 
@@ -118,25 +125,39 @@ A particular combination of GDGTs known as TEX$_{86}$ has been regularly used as
 \be\label{eq:TEX86}
 \mathrm{TEX}_{86} = \frac{\mathrm{GDGT}_2+\mathrm{GDGT}_3+\mathrm{Cren}'}{\mathrm{GDGT}_1+\mathrm{GDGT}_2+\mathrm{GDGT}_3+\mathrm{Cren}'}\, .
 \ee
-TEX$_{86}$ reduces the six-dimensional observable space to a single number.  While this has the advantage of convenience for manipulation and simple analytic formulae for predictors, as illustrated below, this approach has one critical disadvantage: it wastes the information embedded in hard-earned data.  Figure \ref{fig:TEX86} illustrates both the advantage and disadvantage of TEX$_{86}$.  On the one hand, there is a clear correlation between TEX$_{86}$ and the temperature (left panel of \autoref{fig:TEX86}), with a correlation coefficient of $0.81$ corresponding to an overwhelming statistical significance of $10^{-198}$.  On the other hand, very similar TEX$_{86}$ values can correspond to very different temperatures.  We can apply the nearest-neighbour temperature prediction approach to the TEX$_{86}$ value alone rather than the full GDGT parameter space; this predictor yields a large standard error of $\delta T_\mathrm{nearest TEX86} = 8.0$ degrees (right panel of \autoref{fig:TEX86}).  While smaller than $\sigma T$, this is significantly larger than $\delta T_\mathrm{nearest}$, consistent with the loss of information in TEX$_{86}$.  We therefore do not expect other predictors based on TEX$_{86}$ to perform as well as those based on the full available data set.
+TEX$_{86}$ reduces the six-dimensional observable space to a single number.  While this has the advantage of convenience for manipulation and simple analytic formulae for predictors, as illustrated below, this approach has one critical disadvantage: it wastes the information embedded in hard-earned data.  Figure \ref{fig:TEX86} illustrates both the advantage and disadvantage of TEX$_{86}$.  On the one hand, there is a clear correlation between TEX$_{86}$ and the temperature (top panel of \autoref{fig:TEX86}), with a correlation coefficient of $0.81$ corresponding to an overwhelming statistical significance of $10^{-198}$.  On the other hand, very similar TEX$_{86}$ values can correspond to very different temperatures.  We can apply the nearest-neighbour temperature prediction approach to the TEX$_{86}$ value alone rather than the full GDGT parameter space; this predictor yields a large standard error of $\delta T_\mathrm{nearest TEX86} = 8.0$ degrees (bottom panel of \autoref{fig:TEX86}).  While smaller than $\sigma T$, this is significantly larger than $\delta T_\mathrm{nearest}$, consistent with the loss of information in TEX$_{86}$.  We therefore do not expect other predictors based on TEX$_{86}$ to perform as well as those based on the full available data set.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\textwidth]{TEX86.png}
+	\includegraphics[width=0.5\textwidth]{TTEX86.png}
+	\caption{\label{fig:TEX86}  Top: The temperature of the modern data set as a function of the TEX$_{86}$ value, showing a clear correlation between the two, but also significant scatter.  Bottom: the error of the predictor based on the nearest TEX$_{86}$ calibration point.}
+\end{figure}
 
 Indeed, this is what we find when we consider predictors of the form $\hat{T}_\mathrm{OneTEX}  = a + b / \mathrm{TEX}_{86}$ \citeme and $\hat{T}_\mathrm{TEXH}  = c + d \log \mathrm{TEX}_{86}$ \citeme.  We fit the free parameters $a, b, c, d$ by minimising the sum of squares of the residuals over the calibration data sets.  We find that \tocheck{$\delta T_\mathrm{OneTEX} = 6.1$ degrees} (note that this is slightly better than using the fixed values of $a$ and $b$ from \citeme, which would yield \tocheck{$\delta T_\mathrm{OneTEX} = 6.2$ degrees}.  Meanwhile \ilya{[Will, this is for you: ]} $\delta T_\mathrm{TEXH} = XXX$ degrees.  \ilya{[Should we also include TEXL?]}  
 
 \ilya{[Will: this part about Bayespar is for you]} \citeme proposed a more sophisticated approach to obtaining the transfer function from TEX$_{86}$ to temperature ...  However, along with the simpler TEX$_{86}$--based models described above, this approach still suffers from the arbitrary reduction of a six-dimensional data set to a single number.  Therefore, it is not surprising that it performs more poorly than what could be achieved even with the simplest nearest-neighbour predictor using the full six-dimensional data set.
 
-We now consider improvements on the nearest-neighbour predictor motivated by machine learning techniques.  
-
-
-
-
-
-
 \subsection{Machine learning}
 
-nearest temperature prediction.  
+We now consider improvements on the nearest-neighbour predictor motivated by machine learning techniques.  There are a number of options here, such as artificial neural networks and random forests, that are all based on the idea of training a predictor by fitting a set of coefficients in a sufficiently complex multi-layer model in order to minimise residuals on the calibration data set.  As an example of the power of this approach, we train a random forest of decision trees with 100 learning cycles using a least-squares boosting to fit the regression ensemble.  Figure \ref{fig:randomforest} shows the prediction accuracy for this random forest implementation.  This machine learning predictor yields $\delta T_\mathrm = 4.1$ degrees, outperforming the naive nearest-neighbour predictor by effectively applying a suitable weighted average over multiple near neighbours.  This corresponds to a very respectable $R^2 = 0.83$, meaning that 83\% of the variation in the observed temperature is successfully explained by our GDGT-based model.
+
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\textwidth]{Trandomforest.png}
+	\caption{\label{fig:randomforest}  The error of a random forest predictor as a function of the true temperature.}
+\end{figure}
+
+
+One downside of this random forest predictor is the difficulty of accurately estimating the uncertainty on the prediction \citeme [Mentch, http://www.jmlr.org/papers/volume17/14-168/14-168.pdf] , although this is possible with, e.g., a bootstrapping approach \citeme [Coulston, https://pdfs.semanticscholar.org/b75a/432a6c236d193e5d9d4379f7a895efc81ae5.pdf].  Gaussian process regression provides a robust alternative 
+\ilya{[Will: describe the GP model here and give the results.]}
+
+\ilya{[To be decided: should we try to create an algorithmic prescription, by investigating what the random forest or GPs actually tell us about the most significant combinations of observable or the covariance matrix?]} 
 
 
 \section{Measuring temperature in the distant past}
+
+
 
 \section{Discussion}\label{sec:discussion}
 

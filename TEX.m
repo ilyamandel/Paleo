@@ -141,20 +141,22 @@ eocene=xlsread('~/Work/Paleo/Data201803.xlsx','Eocene');
 stdmodern=(std(modern));
 
 
+clear distmin; clear distsq; clear temptrue; clear tempguess;
 validation=load('~/Work/Paleo/validation.txt');
-clear distmin; clear distsq;
+temptrue=modern(validation,9);
 Nval=length(validation);
 valcount=numel(validation)/length(validation);
+
 for(k=1:valcount),
     arr=[1:length(modern)];
     calibrationindex=~ismember(1:length(modern),validation(:,k));
     calibration=arr(calibrationindex);
     for(i=1:Nval),
         for(j=1:length(calibration)),
-            dist=(modern(j,1:6)-modern(validation(i,k),1:6))./stdmodern(1:6);
-            distsq(j)=sqrt(sum(dist.^2));
-            if(find(j==validation(:,k))), distsq(j)=inf; end;
+            dist=(modern(calibration(j),1:6)-modern(validation(i,k),1:6))./stdmodern(1:6);
+            distsq(calibration(j))=sqrt(sum(dist.^2));
         end;
+        distsq(validation(:,k))=inf; 
         [distmin(i,k),index(i,k)]=min(distsq);
     end;
 end;
@@ -165,7 +167,6 @@ set(gca, 'FontSize', 24);
 %xlabel('Normalized distance to nearest calibration point')%, title('Modern')
 xlabel('$D_\mathrm{nearest}$','Interpreter', 'latex'), 
 
-temptrue=modern(validation,9);
 tempguess=modern(index,9);
 figure(2), set(gca, 'FontSize', 16);
 scatter(distmin(:),tempguess(:)-temptrue(:),'filled');
@@ -185,12 +186,18 @@ corr(TEX86modern,modern(:,9))
 
 
 for(k=1:valcount),
+    arr=[1:length(modern)];
+    calibrationindex=~ismember(1:length(modern),validation(:,k));
+    calibration=arr(calibrationindex);
     for(i=1:Nval),
-        for(j=1:length(modern)),
-            dist=(TEX86modern(j)-TEX86modern(validation(i,k)));
-            distsq(j)=sqrt(sum(dist.^2));
-            if(find(j==validation(:,k))), distsq(j)=inf; end;
+            arr=[1:length(modern)];
+            calibrationindex=~ismember(1:length(modern),validation(:,k));
+            calibration=arr(calibrationindex);
+        for(j=1:length(calibration)),
+            dist=(TEX86modern(calibration(j))-TEX86modern(validation(i,k)));
+            distsq(calibration(j))=sqrt(sum(dist.^2));
         end;
+        distsq(validation(:,k))=inf; 
         [distmin(i,k),index(i,k)]=min(distsq);
     end;
 end;
@@ -213,15 +220,12 @@ for(k=1:valcount),
     p=polyfit(1./TEX86modern(calibration),modern(calibration,9),1)
     tempguess(:,k) = polyval(p,1./TEX86modern(validation(:,k)));
 end;
-figure(6), set(gca, 'FontSize', 16);
-scatter(EuFe(:,1),EuFe(:,2),'filled'); hold on;
-plot(EuFe(:,1),yfit,'LineWidth',3); hold off;
-set(gca, 'FontSize', 24);
-xlabel('[Fe/H]'); ylabel('[Eu/H]'); title('Linear fit to data in EMP-RGB file');
-legend('Data', 'Linear fit','Location','Best');
+std(temptrue-tempguess(:))
+std(modern(:,9))
+OneTEX=54.5-19.1./TEX86modern(validation);
+std(temptrue-OneTEX(:))
 
 TEXH=38.6+68.4*log(TEX86modern)/log(10);
-OneTEX=54.5-19.1./TEX86modern;
 TEXL=67.5*modern(:,1)+46.9;
 mean(temptrue'-TEXH(1:floor(length(modern)/2)))
 mean(abs(temptrue'-TEXH(1:floor(length(modern)/2))))

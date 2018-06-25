@@ -157,9 +157,29 @@ One downside of this random forest predictor is the difficulty of accurately est
 
 \section{Measuring temperature in the distant past}
 
+In principle, the predictors described above can be applied directly to ancient data, such as data from the eocene or cretaceous \citeme.  In practice, one should be careful with using models outside their domain of applicability.  The machine learning tools described above, which are ultimately based on the analysis of nearby calibration data in GDGT space, are fundamentally designed for {\it interpolation}.  To the extent that ancient data occupy a very different region in GDGT space, {\it extrapolation} is required, which the models do not adequately account for.
 
+\begin{figure}
+	\centering
+	\includegraphics[width=0.5\textwidth]{nearestE.png}
+	\includegraphics[width=0.5\textwidth]{nearestC.png}
+	\caption{\label{fig:nearestEC}  A histogram of normalised distances to the nearest sample in the modern data set for eocene (top) and cretaceous (bottom) data.}
+\end{figure}
+
+This is evident from \autoref{fig:nearestEC}, which shows the histograms of minimum normalised distances between eocene and cretaceous data points and the nearest point in the full modern data set.  While 93\% of validation data points in the modern data set have a nearby sample in the modern calibration set with a minimum normalised distance $D_\textrm{nearest}<0.5$, only 33\% of eocene samples are within a normalised distance $D_\textrm{nearest}<0.5$ of a modern data point; this fraction falls to only 3\% for cretaceous samples.  The predictive models should only be applied to this subset of the eocene and cretaceous data; in the absence of an underlying physical model, we cannot hope to make robust predictions for data that are very far from any calibration samples.
+
+\ilya{[Will: describe compositional analysis (assume $T \to \vec{\mathrm{GTGT}}$ is unique (up to noise) and invert; could probe different subsets of $\vec{\mathrm{GTGT}}$ -- generalised additive model.  Also describe GPs, which come with built-in error estimation and should revert to sample standard deviation when forced to extrapolate rather than interpolating.]}
+
+The key point, then, is that anyone trying to use GDGTs for temperature calibration should design flexible predictive models with honest, robust estimates of the prediction uncertainty.  Of course, this does not account for systematic errors due to possible biochemical changes in the processes producing GDGTs. \ilya{[Tom, Yvette, James -- discuss this more?]}
 
 \section{Discussion}\label{sec:discussion}
+
+\ilya{[Summarise after everything is in.]}
+
+\ilya{[Discuss outliers (for this, contribution from Tom, James, Yvette).]}
+
+\ilya{[Discuss future prospects]}
+
 
 \begin{acknowledgements}
 We thank the research councils for their munificence.

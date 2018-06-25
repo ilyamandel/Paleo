@@ -271,6 +271,7 @@ ylabel('$T-\hat{T}_\mathrm{weighted\ neighbours}$', 'Interpreter', 'latex')
 std(temptrue-tempguess(:))
 
 
+clear distmin; clear distsq;
 for(i=1:length(eocene)),
     for(j=1:length(modern)),
         dist=(modern(j,1:6)-eocene(i,:))./stdmodern(1:6);
@@ -278,10 +279,12 @@ for(i=1:length(eocene)),
     end;
     distmin(i)=min(distsq);
 end;
-figure(5)
-hist(distmin,100); set(gca, 'FontSize', 20); 
-xlabel('Normalized distance to closest calibration point'), title('Eocene')
+figure(9), set(gca, 'FontSize', 16);
+hist(distmin(:),100); set(gca, 'FontSize', 24); 
+xlabel('$D_\mathrm{nearest}$ for Eocene samples','Interpreter', 'latex')
+quantile(distmin(:),0.33)
 
+clear distmin; clear distsq;
 for(i=1:length(cretaceous)),
     for(j=1:length(modern)),
         dist=(modern(j,1:6)-cretaceous(i,:))./stdmodern(1:6);
@@ -289,9 +292,9 @@ for(i=1:length(cretaceous)),
     end;
     distmin(i)=min(distsq);
 end;
-figure(6)
-hist(distmin,100); set(gca, 'FontSize', 20); 
-xlabel('Normalized distance to closest calibration point'), title('Cretaceous')
+figure(10), set(gca, 'FontSize', 16);
+hist(distmin(:),100); set(gca, 'FontSize', 24); 
+xlabel('$D_\mathrm{nearest}$ for Creataceous samples','Interpreter', 'latex')
 
 %no lat/long on cretaceous/eocene?
 

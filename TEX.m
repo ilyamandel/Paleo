@@ -247,6 +247,27 @@ std(temptrue-tempguess(:))
 
 
 clear tempguess;
+%GP regression
+for(k=1:valcount),h
+    arr=[1:length(modern)];
+    calibrationindex=~ismember(1:length(modern),validation(:,k));
+    calibration=arr(calibrationindex);
+    %gprMdl = fitrgp(modern(calibration,1:6),modern(calibration,9));
+    gprMdl = fitrgp(modern(calibration,1:6),modern(calibration,9),...
+        'KernelFunction','ardsquaredexponential',...
+        'KernelParameters',[0.1 0.1 0.1 0.1 0.1 0.1 std(temptrue)]','Sigma',std(temptrue));
+    tempguess(:,k)=predict(gprMdl,modern(validation(:,k),1:6));
+    L=loss(gprMdl,modern(validation(:,k),1:6),modern(validation(:,k),9));
+    sqrt(L)
+end;
+figure(7); set(gca, 'FontSize', 16); scatter(temptrue,tempguess(:)-temptrue,'filled'); 
+set(gca, 'FontSize', 24); 
+xlabel('$T$',  'Interpreter', 'latex'), 
+ylabel('$T-\hat{T}_\mathrm{random\ forest}$', 'Interpreter', 'latex')
+std(temptrue-tempguess(:))
+
+
+clear tempguess;
 %weighted nearest neigbours
 for(k=1:valcount),
     arr=[1:length(modern)];

@@ -248,24 +248,39 @@ std(temptrue-tempguess(:))
 
 clear tempguess;
 %GP regression
-for(k=1:valcount),h
+for(k=1:valcount),
     arr=[1:length(modern)];
     calibrationindex=~ismember(1:length(modern),validation(:,k));
     calibration=arr(calibrationindex);
     %gprMdl = fitrgp(modern(calibration,1:6),modern(calibration,9));
     gprMdl = fitrgp(modern(calibration,1:6),modern(calibration,9),...
         'KernelFunction','ardsquaredexponential',...
-        'KernelParameters',[0.1 0.1 0.1 0.1 0.1 0.1 std(temptrue)]','Sigma',std(temptrue));
+        'KernelParameters',std(modern(:,[1:6,9])),'Sigma',std(modern(:,9)));
     tempguess(:,k)=predict(gprMdl,modern(validation(:,k),1:6));
     L=loss(gprMdl,modern(validation(:,k),1:6),modern(validation(:,k),9));
+    %gprMdl.KernelInformation.KernelParameters./(std(modern(:,[1:6,9])))'
     sqrt(L)
+    
 end;
-figure(7); set(gca, 'FontSize', 16); scatter(temptrue,tempguess(:)-temptrue,'filled'); 
+figure(8); set(gca, 'FontSize', 16); scatter(temptrue,tempguess(:)-temptrue,'filled'); 
 set(gca, 'FontSize', 24); 
 xlabel('$T$',  'Interpreter', 'latex'), 
-ylabel('$T-\hat{T}_\mathrm{random\ forest}$', 'Interpreter', 'latex')
+ylabel('$T-\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
 std(temptrue-tempguess(:))
 
+figure(9); set(gca, 'FontSize', 16); 
+[pred,predstd,pred95]=predict(gprMdl,modern(validation(:,k),1:6),'Alpha',0.05);
+%plot(modern(validation(:,k),9),[modern(validation(:,k),9)';pred';pred95(:,1)'; pred95(:,2)'],...
+%    'LineWidth', 2);
+plot(modern(validation(:,k),9),modern(validation(:,k),9)); hold on;
+scatter(modern(validation(:,k),9),pred,'*');
+scatter(modern(validation(:,k),9),pred95(:,1),'^');
+scatter(modern(validation(:,k),9),pred95(:,2),'v'); hold off;
+set(gca, 'FontSize', 24); 
+xlabel('$T$',  'Interpreter', 'latex'), 
+ylabel('$\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
+legend('True T', 'GP regression predictor', 'Lower 95% limit', 'Upper 95% limit',...
+    'Location', 'NorthWest');
 
 clear tempguess;
 %weighted nearest neigbours
@@ -285,7 +300,7 @@ for(k=1:valcount),
         tempguess(i,k)=weights*modern(:,9);
     end;
 end;
-figure(8); set(gca, 'FontSize', 16); scatter(temptrue,tempguess(:)-temptrue,'filled'); 
+figure(10); set(gca, 'FontSize', 16); scatter(temptrue,tempguess(:)-temptrue,'filled'); 
 set(gca, 'FontSize', 24); 
 xlabel('$T$',  'Interpreter', 'latex'), 
 ylabel('$T-\hat{T}_\mathrm{weighted\ neighbours}$', 'Interpreter', 'latex')
@@ -300,7 +315,7 @@ for(i=1:length(eocene)),
     end;
     distmin(i)=min(distsq);
 end;
-figure(9), set(gca, 'FontSize', 16);
+figure(11), set(gca, 'FontSize', 16);
 hist(distmin(:),100); set(gca, 'FontSize', 24); 
 xlabel('$D_\mathrm{nearest}$ for Eocene samples','Interpreter', 'latex')
 quantile(distmin(:),0.33)
@@ -313,7 +328,7 @@ for(i=1:length(cretaceous)),
     end;
     distmin(i)=min(distsq);
 end;
-figure(10), set(gca, 'FontSize', 16);
+figure(12), set(gca, 'FontSize', 16);
 hist(distmin(:),100); set(gca, 'FontSize', 24); 
 xlabel('$D_\mathrm{nearest}$ for Creataceous samples','Interpreter', 'latex')
 

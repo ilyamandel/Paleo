@@ -281,6 +281,7 @@ xlabel('$T$',  'Interpreter', 'latex'),
 ylabel('$\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
 legend('True T', 'GP regression predictor', 'Lower 95% limit', 'Upper 95% limit',...
     'Location', 'NorthWest');
+sum(modern(validation(:,k),9)>=pred95(:,1) & modern(validation(:,k),9)<=pred95(:,2))./Nval
 
 clear tempguess;
 %weighted nearest neigbours

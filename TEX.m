@@ -331,7 +331,63 @@ for(i=1:length(cretaceous)),
 end;
 figure(12), set(gca, 'FontSize', 16);
 hist(distmin(:),100); set(gca, 'FontSize', 24); 
-xlabel('$D_\mathrm{nearest}$ for Creataceous samples','Interpreter', 'latex')
+xlabel('$D_\mathrm{nearest}$ for Cretaceous samples','Interpreter', 'latex')
+
+
+
+%GP regression on full modern data set, applied to eocene and cretaceous
+gprMdl = fitrgp(modern(:,1:6),modern(:,9),...
+        'KernelFunction','ardsquaredexponential',...
+        'KernelParameters',std(modern(:,[1:6,9])),'Sigma',std(modern(:,9)));
+gprMdl.KernelInformation.KernelParameters./(std(modern(:,[1:6,9])))'    
+[tempmodern,tempmodernstd,tempmodern95]=predict(gprMdl,modern(:,1:6));
+L=loss(gprMdl,modern(:,1:6),modern(:,9));
+sqrt(L)
+std(modern(:,9)-tempmodern)
+
+clear tempeocene, clear tempeocenestd, clear tempeocene95
+clear tempcretaceous, clear tempcretaceousstd, clear tempcretaceous95
+eocenecut=eocene(~isnan(eocene(:,1)),:);
+[tempeocene,tempeocenestd,tempecoene95]=predict(gprMdl,eocenecut(:,1:6),'Alpha',0.05);
+[tempcretaceous,tempcretaceousstd,tempcretaceous95]=predict(gprMdl,cretaceous(:,1:6),'Alpha',0.05);
+mean(tempmodern), mean(tempeocene), mean(tempcretaceous)
+
+figure(13); set(gca, 'FontSize', 16); 
+centers=[-6:3:30];
+edges=[centers-1.5, max(centers)+1.5];
+histmodern=histcounts(tempmodern,edges);
+histeocene=histcounts(tempeocene,edges);
+histcretaceous=histcounts(tempeocene,edges);
+%bar(centers,histpred)
+histogram(tempmodern,edges); hold on; histogram(tempeocene,edges); histogram(tempcretaceous,edges); hold off;
+set(gca, 'FontSize', 24); 
+xlabel('Predicted temperature'); ylabel('Counts');
+legend('Modern','Eocene','Cretaceous');
+
+figure(14); set(gca, 'FontSize', 16);
+centers=[0:0.5:10];
+edges=[centers-0.25, max(centers)+0.25];
+histogram(tempmodernstd,edges); hold on; histogram(tempeocenestd,edges); histogram(tempcretaceousstd,edges); hold off;
+set(gca, 'FontSize', 24); 
+xlabel('Prediction standard deviation'); ylabel('Counts');
+legend('Modern','Eocene','Cretaceous');
+
+
+figure(15);
+set(gca, 'FontSize', 16); 
+scatter(modern(:,8),modern(:,9),'filled'); hold on;
+scatter(modern(:,8),tempmodern,'*');
+scatter(modern(:,8),tempmodern95(:,1),'^');
+scatter(modern(:,8),tempmodern95(:,2),'v'); hold off;
+set(gca, 'FontSize', 24); 
+xlabel('Latitude [degrees]'), 
+ylabel('Temperature'),
+%ylabel('$\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
+legend('True T', 'GP regression predictor', 'Lower 95% limit', 'Upper 95% limit',...
+    'Location', 'NorthWest');
+sum(modern(:,9)>=tempmodern95(:,1) & modern(:,9)<=tempmodern95(:,2))./length(modern)
+
+
 
 %no lat/long on cretaceous/eocene?
 

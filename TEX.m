@@ -137,6 +137,13 @@ modern=xlsread('~/Work/Paleo/Data201803.xlsx','Modern Calibration');
 cretaceous=xlsread('~/Work/Paleo/Data201803.xlsx','Cretaceous');
 eocene=xlsread('~/Work/Paleo/Data201803.xlsx','Eocene');
 
+eocenelat=xlsread('~/Work/Paleo/EoceneLatitude201808.xlsx');
+cretaceouslat=xlsread('~/Work/Paleo/CretaceousLatitude201808.xlsx');
+eocene=[eocene';eocenelat(2:end,5:6)']'; % add latitude and early/mid/late columns
+cretaceous=[cretaceous';cretaceouslat(3:end,5)']';
+
+eocenecut=eocene(~isnan(eocene(:,1)),:);
+
 
 stdmodern=(std(modern));
 
@@ -246,7 +253,7 @@ ylabel('$T-\hat{T}_\mathrm{random\ forest}$', 'Interpreter', 'latex')
 std(temptrue-tempguess(:))
 
 
-clear tempguess;
+clear tempguess; clear tempstd;
 %GP regression
 for(k=1:valcount),
     arr=[1:length(modern)];
@@ -256,11 +263,10 @@ for(k=1:valcount),
     gprMdl = fitrgp(modern(calibration,1:6),modern(calibration,9),...
         'KernelFunction','ardsquaredexponential',...
         'KernelParameters',std(modern(:,[1:6,9])),'Sigma',std(modern(:,9)));
-    tempguess(:,k)=predict(gprMdl,modern(validation(:,k),1:6));
+    [tempguess(:,k),tempstd(:,k)]=predict(gprMdl,modern(validation(:,k),1:6));
     L=loss(gprMdl,modern(validation(:,k),1:6),modern(validation(:,k),9));
     %gprMdl.KernelInformation.KernelParameters./(std(modern(:,[1:6,9])))'
     sqrt(L)
-    
 end;
 figure(8); set(gca, 'FontSize', 16); scatter(temptrue,tempguess(:)-temptrue,'filled'); 
 set(gca, 'FontSize', 24); 
@@ -283,6 +289,55 @@ legend('True T', 'GP regression predictor', 'Lower 95% limit', 'Upper 95% limit'
     'Location', 'NorthWest');
 sum(modern(validation(:,k),9)>=pred95(:,1) & modern(validation(:,k),9)<=pred95(:,2))./Nval
 
+%p-p plot
+interval=5:5:95;
+for(i=1:length(interval))
+    nsigma=sqrt(2)*erfinv(interval(i)/100);
+    lowerbound=tempguess-nsigma*tempstd; 
+    upperbound=tempguess+nsigma*tempstd;
+    fracininterval(i)=sum(temptrue>=lowerbound(:) & temptrue<=upperbound(:))./(10*Nval);
+end;
+figure(10); set(gca, 'FontSize', 16); 
+plot(interval/100,fracininterval,'LineWidth',3); hold on;
+plot([0:100]/100, [0:100]/100,'k:'); hold off;
+set(gca, 'FontSize', 24)
+ylabel('Fraction of true T within interval'), xlabel('Confidence interval')
+
+
+
+
+k=1;
+arr=[1:length(modern)];
+calibrationindex=~ismember(1:length(modern),validation(:,k));
+calibration=arr(calibrationindex);
+gprMdl = fitrgp(modern(calibration,1:6),modern(calibration,9),...
+        'KernelFunction','ardsquaredexponential',...
+        'KernelParameters',std(modern(:,[1:6,9])),'Sigma',std(modern(:,9)));
+tempguess=predict(gprMdl,modern(validation(:,k),1:6));
+L=loss(gprMdl,modern(validation(:,k),1:6),modern(validation(:,k),9));
+sigmaL = gprMdl.KernelInformation.KernelParameters(1:end-1);
+sqrt(L)
+for(i=1:length(validation(:,k))),
+    for(j=1:length(calibration)),
+            dist=(modern(calibration(j),1:6)-modern(validation(i,k),1:6))./stdmodern(1:6);
+            distsq(j)=sqrt(sum(dist.^2));
+            distw=(modern(calibration(j),1:6)-modern(validation(i,k),1:6))./sigmaL';
+            distsqw(j)=sqrt(sum(distw.^2));
+    end;
+    [distmin(i),index(i)]=min(distsq);
+    [distwmin(i),indexw(i)]=min(distsqw);
+end;
+figure(11); set(gca, 'FontSize', 16); scatter(distmin,tempguess-modern(validation(:,k),9),'filled'); 
+set(gca, 'FontSize', 24); 
+xlabel('$D_\mathrm{nearest}$','Interpreter', 'latex'), 
+ylabel('$T-\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
+corr(distmin',abs(tempguess-modern(validation(:,k),9)))
+figure(12); set(gca, 'FontSize', 16); scatter(distwmin,tempguess-modern(validation(:,k),9),'filled'); 
+set(gca, 'FontSize', 24); 
+xlabel('$D_\mathrm{nearest,weighted}$','Interpreter', 'latex'), 
+ylabel('$T-\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
+corr(distwmin',abs(tempguess-modern(validation(:,k),9)))
+
 clear tempguess;
 %weighted nearest neigbours
 for(k=1:valcount),
@@ -301,7 +356,7 @@ for(k=1:valcount),
         tempguess(i,k)=weights*modern(:,9);
     end;
 end;
-figure(10); set(gca, 'FontSize', 16); scatter(temptrue,tempguess(:)-temptrue,'filled'); 
+figure(13); set(gca, 'FontSize', 16); scatter(temptrue,tempguess(:)-temptrue,'filled'); 
 set(gca, 'FontSize', 24); 
 xlabel('$T$',  'Interpreter', 'latex'), 
 ylabel('$T-\hat{T}_\mathrm{weighted\ neighbours}$', 'Interpreter', 'latex')
@@ -311,12 +366,12 @@ std(temptrue-tempguess(:))
 clear distmin; clear distsq;
 for(i=1:length(eocene)),
     for(j=1:length(modern)),
-        dist=(modern(j,1:6)-eocene(i,:))./stdmodern(1:6);
+        dist=(modern(j,1:6)-eocene(i,1:6))./stdmodern(1:6);
         distsq(j)=sqrt(sum(dist.^2));
     end;
     distmin(i)=min(distsq);
 end;
-figure(11), set(gca, 'FontSize', 16);
+figure(14), set(gca, 'FontSize', 16);
 hist(distmin(:),100); set(gca, 'FontSize', 24); 
 xlabel('$D_\mathrm{nearest}$ for Eocene samples','Interpreter', 'latex')
 quantile(distmin(:),0.33)
@@ -324,12 +379,12 @@ quantile(distmin(:),0.33)
 clear distmin; clear distsq;
 for(i=1:length(cretaceous)),
     for(j=1:length(modern)),
-        dist=(modern(j,1:6)-cretaceous(i,:))./stdmodern(1:6);
+        dist=(modern(j,1:6)-cretaceous(i,1:6))./stdmodern(1:6);
         distsq(j)=sqrt(sum(dist.^2));
     end;
     distmin(i)=min(distsq);
 end;
-figure(12), set(gca, 'FontSize', 16);
+figure(15), set(gca, 'FontSize', 16);
 hist(distmin(:),100); set(gca, 'FontSize', 24); 
 xlabel('$D_\mathrm{nearest}$ for Cretaceous samples','Interpreter', 'latex')
 
@@ -344,15 +399,17 @@ gprMdl.KernelInformation.KernelParameters./(std(modern(:,[1:6,9])))'
 L=loss(gprMdl,modern(:,1:6),modern(:,9));
 sqrt(L)
 std(modern(:,9)-tempmodern)
+sigmaL = gprMdl.KernelInformation.KernelParameters(1:end-1); % Learned length scales
+weights = exp(-sigmaL); % Predictor weights
+weights = weights/sum(weights)
 
 clear tempeocene, clear tempeocenestd, clear tempeocene95
 clear tempcretaceous, clear tempcretaceousstd, clear tempcretaceous95
-eocenecut=eocene(~isnan(eocene(:,1)),:);
-[tempeocene,tempeocenestd,tempecoene95]=predict(gprMdl,eocenecut(:,1:6),'Alpha',0.05);
+[tempeocene,tempeocenestd,tempeocene95]=predict(gprMdl,eocenecut(:,1:6),'Alpha',0.05);
 [tempcretaceous,tempcretaceousstd,tempcretaceous95]=predict(gprMdl,cretaceous(:,1:6),'Alpha',0.05);
 mean(tempmodern), mean(tempeocene), mean(tempcretaceous)
 
-figure(13); set(gca, 'FontSize', 16); 
+figure(16); set(gca, 'FontSize', 16); 
 centers=[-6:3:30];
 edges=[centers-1.5, max(centers)+1.5];
 histmodern=histcounts(tempmodern,edges);
@@ -364,7 +421,7 @@ set(gca, 'FontSize', 24);
 xlabel('Predicted temperature'); ylabel('Counts');
 legend('Modern','Eocene','Cretaceous');
 
-figure(14); set(gca, 'FontSize', 16);
+figure(17); set(gca, 'FontSize', 16);
 centers=[0:0.5:10];
 edges=[centers-0.25, max(centers)+0.25];
 histogram(tempmodernstd,edges); hold on; histogram(tempeocenestd,edges); histogram(tempcretaceousstd,edges); hold off;
@@ -373,7 +430,54 @@ xlabel('Prediction standard deviation'); ylabel('Counts');
 legend('Modern','Eocene','Cretaceous');
 
 
-figure(15);
+for(i=1:length(eocenecut)),
+    for(j=1:length(modern)),
+            dist=(modern(j,1:6)-eocenecut(i,1:6))./sigmaL';
+            distsq(j)=sqrt(sum(dist.^2));
+    end;
+    [distmineocene(i),indexeocene(i)]=min(distsq);
+end;
+
+for(i=1:length(cretaceous)),
+    for(j=1:length(modern)),
+            dist=(modern(j,1:6)-cretaceous(i,1:6))./sigmaL';
+            distsq(j)=sqrt(sum(dist.^2));
+    end;
+    [distmincretaceous(i),indexcretaceous(i)]=min(distsq);
+end;
+
+figure(18), set(gca, 'FontSize', 16);
+%hist(distmin(:),100); 
+scatter(log(distmineocene)/log(10),tempeocenestd, 'filled'); hold on;
+plot(log(0.5)/log(10)*ones(size([3:9])),[3:9],'k:'); hold off;
+set(gca, 'FontSize', 24); 
+%xlabel('Normalized distance to nearest calibration point')%, title('Modern')
+xlabel('$\log_{10}(D_\mathrm{nearest,weighted})$','Interpreter', 'latex'),
+ylabel('Eocene prediction standard deviation')
+
+figure(19), set(gca, 'FontSize', 16);
+%hist(distmin(:),100); 
+scatter(log(distmincretaceous)/log(10),tempcretaceousstd, 'filled'); hold on;
+plot(log(0.5)/log(10)*ones(size([3:9])),[3:9],'k:'); hold off;
+set(gca, 'FontSize', 24); 
+%xlabel('Normalized distance to nearest calibration point')%, title('Modern')
+xlabel('$\log_{10}(D_\mathrm{nearest,weighted})$','Interpreter', 'latex'),
+ylabel('Cretaceous prediction standard deviation')
+
+
+figure(17); set(gca, 'FontSize', 16);
+centers=[0:0.5:10];
+edges=[centers-0.25, max(centers)+0.25];
+histogram(tempmodernstd,edges); hold on; histogram(tempeocenestd,edges); histogram(tempcretaceousstd,edges); 
+histogram(tempeocenestd(log(distmineocene)/log(10)<log(0.5)/log(10)),edges); 
+histogram(tempcretaceousstd(log(distmincretaceous)/log(10)<log(0.5)/log(10)),edges); hold off;
+set(gca, 'FontSize', 24); 
+xlabel('Prediction standard deviation'); ylabel('Counts');
+legend('Modern','Eocene','Cretaceous','Eocene after cut', 'Cretaceous after cut');
+
+
+%%%% Latitudes
+figure(20);
 set(gca, 'FontSize', 16); 
 scatter(modern(:,8),modern(:,9),'filled'); hold on;
 scatter(modern(:,8),tempmodern,'*');
@@ -384,10 +488,85 @@ xlabel('Latitude [degrees]'),
 ylabel('Temperature'),
 %ylabel('$\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
 legend('True T', 'GP regression predictor', 'Lower 95% limit', 'Upper 95% limit',...
-    'Location', 'NorthWest');
+    'Location', 'South');
 sum(modern(:,9)>=tempmodern95(:,1) & modern(:,9)<=tempmodern95(:,2))./length(modern)
 
 
+figure(21);
+set(gca, 'FontSize', 16); 
+eoceneselect=log(distmineocene)/log(10)<log(0.5)/log(10);
+scatter(eocenecut(eoceneselect,7),tempeocene(eoceneselect),'*'); hold on;
+scatter(eocenecut(eoceneselect,7),tempeocene95(eoceneselect,1),'^');
+scatter(eocenecut(eoceneselect,7),tempeocene95(eoceneselect,2),'v'); hold off;
+set(gca, 'FontSize', 24); 
+xlabel('Eocene latitude [degrees]'), 
+ylabel('Eocene temperature'),
+%ylabel('$\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
+legend('GP regression predictor', 'Lower 95% limit', 'Upper 95% limit',...
+    'Location', 'South');
+
+figure(22);
+set(gca, 'FontSize', 16); 
+eoceneselect=log(distmineocene)/log(10)<log(0.5)/log(10);
+scatter(eocene(eoceneselect'&eocenecut(:,8)==1,7),...
+    tempeocene(eoceneselect'&eocenecut(:,8)==1),'filled'); hold on;
+scatter(eocene(eoceneselect'&eocenecut(:,8)==2,7),...
+    tempeocene(eoceneselect'&eocenecut(:,8)==2),'filled');
+scatter(eocene(eoceneselect'&eocenecut(:,8)==3,7),...
+    tempeocene(eoceneselect'&eocenecut(:,8)==3),'filled');
+scatter(eocene(~eoceneselect,7),tempeocene(~eoceneselect),20,[0.5 0.5 0.5], 'filled'); hold off;
+set(gca, 'FontSize', 24); 
+xlabel('Eocene latitude [degrees]'), 
+ylabel('Eocene temperature'),
+%ylabel('$\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
+legend('Early; Trusted GP regression predictor', 'Middle; Trusted GP regression predictor',...
+    'Late; Trusted GP regression predictor', 'Untrusted GP regression predictor',...
+    'Location', 'South');
+ 
+scatter(cretaceous(cretaceousselect,7),tempcretaceous(cretaceousselect),'filled'); hold on;
+scatter(cretaceous(~cretaceousselect,7),tempcretaceous(~cretaceousselect),20,[0.5 0.5 0.5], 'filled'); hold off;
+set(gca, 'FontSize', 24); 
+xlabel('Cretaceous latitude [degrees]'), 
+ylabel('Cretaceous temperature'),
+%ylabel('$\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
+legend('Trusted GP regression predictor', 'Untrusted GP regression predictor',...
+    'Location', 'South');
+
+
+figure(23);
+set(gca, 'FontSize', 16); 
+cretaceousselect=log(distmincretaceous)/log(10)<log(0.5)/log(10);
+scatter(cretaceous(cretaceousselect,7),tempcretaceous(cretaceousselect),'*'); hold on;
+scatter(cretaceous(cretaceousselect,7),tempcretaceous95(cretaceousselect,1),'^');
+scatter(cretaceous(cretaceousselect,7),tempcretaceous95(cretaceousselect,2),'v'); hold off;
+set(gca, 'FontSize', 24); 
+xlabel('Cretaceous latitude [degrees]'), 
+ylabel('Cretaceous temperature'),
+%ylabel('$\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
+legend('GP regression predictor', 'Lower 95% limit', 'Upper 95% limit',...
+    'Location', 'South');
+
+figure(24);
+set(gca, 'FontSize', 16); 
+cretaceousselect=log(distmincretaceous)/log(10)<log(0.5)/log(10);
+%s=scatter(cretaceous(~cretaceousselect,7),tempcretaceous(~cretaceousselect),'filled'); 
+%s.MarkerEdgeColor='w'; s.MarkerFaceColor=[0.5 0.5 0.5]; 
+scatter(cretaceous(cretaceousselect,7),tempcretaceous(cretaceousselect),'filled'); hold on;
+scatter(cretaceous(~cretaceousselect,7),tempcretaceous(~cretaceousselect),20,[0.5 0.5 0.5], 'filled'); hold off;
+set(gca, 'FontSize', 24); 
+xlabel('Cretaceous latitude [degrees]'), 
+ylabel('Cretaceous temperature'),
+%ylabel('$\hat{T}_\mathrm{GP\ regression}$', 'Interpreter', 'latex')
+legend('Trusted GP regression predictor', 'Untrusted GP regression predictor',...
+    'Location', 'South');
+
+outcretaceous=[tempcretaceous';tempcretaceousstd';distmincretaceous;cretaceousselect]';
+outeocene=[tempeocene';tempeocenestd';distmineocene;eoceneselect]';
+outeoceneuncut=zeros(length(eocene),4);
+outeoceneuncut(~isnan(eocene(:,1)),:)=outeocene;
+outeoceneuncut(isnan(eocene(:,1)),:)=nan;
+csvwrite('EocenePredictions.csv',outeoceneuncut);
+csvwrite('CretaceousPredictions.csv',outcretaceous);
 
 %no lat/long on cretaceous/eocene?
 
